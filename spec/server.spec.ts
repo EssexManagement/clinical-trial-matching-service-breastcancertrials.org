@@ -20,18 +20,16 @@ describe('BreastCancerTrialsService', () => {
       return request(server).get('/').set('Accept', 'application/json').expect(200);
     });
 
-    it('uses the query runner', () => {
+    it('uses the query runner', async () => {
       const runQuery = spyOn(service, 'matcher').and.callFake(() => {
         return Promise.resolve(new SearchSet([]));
       });
-      return request(server)
+      await request(server)
         .post('/getClinicalTrial')
         .send({ resourceType: 'Bundle', type: 'collection', entry: [] })
         .set('Accept', 'application/json')
-        .expect(200)
-        .then(() => {
-          expect(runQuery).toHaveBeenCalled();
-        });
+        .expect(200);
+      expect(runQuery).toHaveBeenCalled();
     });
   });
 
@@ -67,6 +65,7 @@ describe('start()', () => {
     process.env.NODE_ENV = 'test';
     process.env.MATCHING_SERVICE_ENDPOINT = 'https://www.example.com/test/endpoint';
     process.env.MATCHING_SERVICE_PORT = '3005';
+    process.env.CTGOV_CACHE_FILE = ':memory:';
     return expectAsync(
       start().then((service) => {
         expect(service.port).toEqual(3005);

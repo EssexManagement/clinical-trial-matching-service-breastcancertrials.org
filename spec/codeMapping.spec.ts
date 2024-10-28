@@ -1,7 +1,7 @@
 import { Bundle, BundleEntry, Coding, ConditionStage, FhirResource } from "fhir/r4";
 import { performCodeMapping } from "../src/query";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 import {
   importRxnormSnomedMapping,
   importStageSnomedMapping,
@@ -82,36 +82,15 @@ function getStage(entry: BundleEntry<FhirResource> | undefined, index=0): Condit
 describe("Code Mapping Tests.", () => {
   // Setup
   let testPatientBundle: Bundle;
-  beforeAll(() => {
-    importRxnormSnomedMapping().catch(
-      () => "Loaded RxNorm-SNOMED Mapping for Tests."
+  beforeAll(async () => {
+    await importRxnormSnomedMapping();
+    await importStageSnomedMapping();
+    await importStageAjccMapping();
+    const patientDataPath = path.join(
+      __dirname,
+      "../../spec/data/patient_data.json"
     );
-    importStageSnomedMapping().catch(
-      () => "Loaded Staging SNOMED Mapping for Tests."
-    );
-    importStageAjccMapping().catch(
-      () => "Loaded Staging AJCC to SNOMED Mapping for Tests."
-    );
-    return new Promise((resolve, reject) => {
-      const patientDataPath = path.join(
-        __dirname,
-        "../../spec/data/patient_data.json"
-      );
-      fs.readFile(patientDataPath, { encoding: "utf8" }, (error, data) => {
-        if (error) {
-          console.error("Could not read spec file");
-          reject(error);
-          return;
-        }
-        try {
-          testPatientBundle = JSON.parse(data) as Bundle;
-          // The object we resolve to doesn't really matter
-          resolve(testPatientBundle);
-        } catch (ex) {
-          reject(error);
-        }
-      });
-    });
+    testPatientBundle = JSON.parse(await fs.readFile(patientDataPath, { encoding: "utf8" })) as Bundle;
   });
 
   it("Test Coding Mappings.", function () {

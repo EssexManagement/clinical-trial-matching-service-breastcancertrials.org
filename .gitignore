@@ -7,7 +7,9 @@
 
 # Ignore installed modules
 /node_modules
-/clinicaltrial-backup-cache
+
+# Ignore cache
+/ctgov-cache.db
 
 # Ignore Instanbul coverage files
 /.nyc_output

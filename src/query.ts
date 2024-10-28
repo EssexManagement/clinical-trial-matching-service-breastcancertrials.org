@@ -4,13 +4,11 @@
  */
 
 import {
-  ClinicalStudy,
   ClinicalTrialsGovService,
   SearchSet,
   ServiceConfiguration,
-  updateResearchStudyWithClinicalStudy
 } from "clinical-trial-matching-service";
-import { Bundle, CodeableConcept, Coding, ResearchStudy } from "fhir/r4";
+import { Bundle, CodeableConcept, Coding } from "fhir/r4";
 import {
   rxnormSnomedMapping,
   stageSnomedMapping,
@@ -38,25 +36,9 @@ export class APIError extends Error {
 }
 
 /**
- * Slight change to the default way research studies are updated.
- * @param researchStudy the base research study
- * @param clinicalStudy the clinical study data from ClinicalTrials.gov
- */
-export function updateResearchStudy(researchStudy: ResearchStudy, clinicalStudy: ClinicalStudy): void {
-  if (researchStudy.description) {
-    const briefSummary = clinicalStudy.brief_summary;
-    if (briefSummary) {
-      researchStudy.description += '\n\n' + briefSummary[0].textblock[0];
-    }
-  }
-  updateResearchStudyWithClinicalStudy(researchStudy, clinicalStudy);
-}
-/**
  * Create a new matching function using the given configuration.
  * @param configuration the configuration to use to configure the matcher
- * @param backupService the backup service to use. (Note: at present, the
- *    updateResarchStudy method is "monkey patched" to update how trials are
- *    converted.)
+ * @param backupService the backup service to use
  */
 export function createClinicalTrialLookup(
   configuration: QueryConfiguration,
@@ -67,11 +49,6 @@ export function createClinicalTrialLookup(
     throw new Error("Missing endpoint in configuration");
   }
   const endpoint = configuration.endpoint;
-  // FIXME: While this is sort of the intended usage, it potentially wipes out
-  // customizations from the object passed in
-  if (backupService) {
-    backupService.updateResearchStudy = updateResearchStudy;
-  }
   return async function getMatchingClinicalTrials(
     patientBundle: Bundle
   ): Promise<SearchSet> {

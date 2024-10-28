@@ -1,5 +1,5 @@
 import stripBom from "strip-bom-stream";
-import fs from "fs";
+import fs from "node:fs";
 import csv from "csv-parser";
 
 export const rxnormSnomedMapping = new Map<string, string>();

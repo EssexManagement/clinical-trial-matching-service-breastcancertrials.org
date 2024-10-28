@@ -1,6 +1,6 @@
-import { ClinicalStudy } from "clinical-trial-matching-service";
+import { Study } from "clinical-trial-matching-service";
 import { Bundle, FhirResource } from "fhir/r4";
-import { StatusEnum, StudyTypeEnum } from "clinical-trial-matching-service/dist/clinicalstudy";
+import { ProtocolSection, Status, StudyType } from "clinical-trial-matching-service/dist/ctg-api";
 import { TrialResponse } from "../../src/breastcancertrials";
 
 /**
@@ -24,47 +24,48 @@ export function createEmptyClinicalStudy(
     source?: string;
     briefTitle?: string;
     sponsorAgency?: string;
-    overallStatus?: StatusEnum;
-    studyType?: StudyTypeEnum;
+    overallStatus?: Status;
+    studyType?: StudyType;
     briefSummary?: string;
   } = {}
-): ClinicalStudy {
+): Study {
   const id = options.id ?? "NCT12345678",
     source = options.source ?? "http://www.example.com/source",
     briefTitle = options.briefTitle ?? "Title",
     sponsorAgency = options.sponsorAgency ?? "Example Agency",
-    overallStatus = options.overallStatus ?? "Recruiting",
-    studyType = options.studyType ?? "Observational",
+    overallStatus = options.overallStatus ?? Status.RECRUITING,
+    studyType = options.studyType ?? StudyType.OBSERVATIONAL,
     briefSummary = options.briefTitle;
-  const result: ClinicalStudy = {
-    required_header: [
-      {
-        download_date: [""],
-        link_text: [""],
-        url: [""]
+  const protocolSection: ProtocolSection = {
+    identificationModule: {
+      nctId: id,
+      briefTitle: briefTitle,
+      organization: {
+        fullName: source
       }
-    ],
-    id_info: [
-      {
-        nct_id: [id]
-      }
-    ],
-    brief_title: [briefTitle],
-    sponsors: [
-      {
-        lead_sponsor: [
-          {
-            agency: [sponsorAgency]
-          }
-        ]
-      }
-    ],
-    source: [source],
-    overall_status: [overallStatus],
-    study_type: [studyType]
+    },
+    designModule: {
+      studyType: studyType
+    },
+    statusModule: {
+      overallStatus: overallStatus,
+    },
+    descriptionModule: {
+      briefSummary: briefSummary,
+    },
+    sponsorCollaboratorsModule: {
+      leadSponsor: {
+        name: sponsorAgency,
+      },
+    }
+  };
+  const result: Study = {
+    protocolSection: protocolSection
   };
   if (briefSummary) {
-    result.brief_summary = [{ textblock: [briefSummary] }];
+    protocolSection.descriptionModule = {
+      briefSummary: briefSummary
+    };
   }
   return result;
 }

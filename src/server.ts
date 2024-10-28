@@ -10,13 +10,11 @@ import * as dotenv from "dotenv-flow";
 
 export class BreastCancerTrialsService extends ClinicalTrialMatchingService {
   backupService: ClinicalTrialsGovService;
-  constructor(config: Record<string, string | number>) {
+  constructor(config: Record<string, string | number>, ctgovCacheFile?: string) {
     // Need to instantiate the backup service first - note that it is NOT
     // initialized here
-    // TODO: Make this configurable
-    const backupService = new ClinicalTrialsGovService(
-      "clinicaltrial-backup-cache"
-    );
+    // If no cache file was given, create an in-memory database instead
+    const backupService = new ClinicalTrialsGovService(ctgovCacheFile ?? ':memory:');
     super(createClinicalTrialLookup(config, backupService), config);
     this.backupService = backupService;
   }
@@ -46,7 +44,11 @@ export default function start(): Promise<ClinicalTrialMatchingService> {
     // The default environment to use if none is set
     default_node_env: "development",
   });
-  const service = new BreastCancerTrialsService(configFromEnv("MATCHING_SERVICE_"));
+  const ctgovCacheFile = process.env['CTGOV_CACHE_FILE'];
+  if (!ctgovCacheFile) {
+    throw new Error('Missing configuration for CTGOV_CACHE_FILE, required for the backup service');
+  }
+  const service = new BreastCancerTrialsService(configFromEnv("MATCHING_SERVICE_"), ctgovCacheFile);
   return service.init().then(() => {
     return service.listen().then(() => service);
   });
