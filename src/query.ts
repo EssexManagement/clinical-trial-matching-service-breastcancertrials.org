@@ -42,7 +42,7 @@ export class APIError extends Error {
  */
 export function createClinicalTrialLookup(
   configuration: QueryConfiguration,
-  backupService: ClinicalTrialsGovService
+  backupService?: ClinicalTrialsGovService
 ): (patientBundle: Bundle) => Promise<SearchSet> {
   // Raise errors on missing configuration
   if (typeof configuration.endpoint !== "string") {
@@ -55,7 +55,10 @@ export function createClinicalTrialLookup(
     patientBundle = performCodeMapping(patientBundle);
     // For now, the full patient bundle is the query
     const result = await sendQuery(endpoint, JSON.stringify(patientBundle, null, 2));
-    const studies = await backupService.updateResearchStudies(result.map(convertToResearchStudy));
+    const studies = result.map(convertToResearchStudy);
+    if (backupService) {
+      await backupService.updateResearchStudies(studies);
+    }
     const ss = new SearchSet();
     for (const study of studies) {
       // If returned from BCT, then the study has a match likelihood of 1

@@ -13,6 +13,13 @@ describe(".createClinicalTrialLookup", () => {
     }).toThrowError("Missing endpoint in configuration");
   });
 
+  it("does not require a backup service to start", () => {
+    // Basically, expect to get something with null
+    expect(() => {
+      expect(createClinicalTrialLookup({ endpoint: "https://www.example.com/" })).toBeDefined();
+    }).not.toThrowError();
+  });
+
   it("creates a function", () => {
     expect(
       typeof createClinicalTrialLookup({ endpoint: "https://www.example.com/" }, new ClinicalTrialsGovService("temp"))
