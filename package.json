@@ -26,7 +26,7 @@
     "clinical-trial-matching-service": "^0.1.2",
     "csv-parser": "^3.0.0",
     "dotenv-flow": "^4.0.0",
-    "express": "^4.17.1",
+    "express": "^4.21.2",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "strip-bom": "^4.0.0",
