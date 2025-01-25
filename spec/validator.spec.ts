@@ -7,7 +7,7 @@ import * as util from 'util';
 
 import { Fhir } from 'fhir/fhir';
 import { ValidatorMessage } from 'fhir/validator';
-import { parseStudyJson, createResearchStudyFromClinicalStudy } from 'clinical-trial-matching-service';
+import { parseStudyJson, createResearchStudyFromClinicalStudy } from '@EssexManagement/clinical-trial-matching-service';
 
 function specPath(filePath: string): string {
   return path.join(__dirname, '../../spec', filePath);

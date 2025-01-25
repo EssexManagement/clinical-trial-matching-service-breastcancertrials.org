@@ -1,6 +1,6 @@
-import { Study } from "clinical-trial-matching-service";
+import { Study } from "@EssexManagement/clinical-trial-matching-service";
 import { Bundle, FhirResource } from "fhir/r4";
-import { ProtocolSection, Status, StudyType } from "clinical-trial-matching-service/dist/ctg-api";
+import { ProtocolSection, Status, StudyType } from "@EssexManagement/clinical-trial-matching-service/dist/ctg-api";
 import { TrialResponse } from "../../src/breastcancertrials";
 
 /**

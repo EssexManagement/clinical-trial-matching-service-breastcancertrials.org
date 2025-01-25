@@ -1,7 +1,7 @@
 import request from 'supertest';
 import start, { BreastCancerTrialsService } from '../src/server';
 import http from 'http';
-import { SearchSet } from 'clinical-trial-matching-service';
+import { SearchSet } from '@EssexManagement/clinical-trial-matching-service';
 
 describe('BreastCancerTrialsService', () => {
   describe('when listening', () => {

@@ -4,7 +4,7 @@ import { createClinicalTrialLookup } from "./query";
 import ClinicalTrialMatchingService, {
   configFromEnv,
   ClinicalTrialsGovService,
-} from "clinical-trial-matching-service";
+} from "@EssexManagement/clinical-trial-matching-service";
 import { importRxnormSnomedMapping, importStageSnomedMapping, importStageAjccMapping, importLoincBiomarkerMapping, importSnomedHl7Mapping } from "./breastcancertrials";
 import * as dotenv from "dotenv-flow";
 
