@@ -7,7 +7,7 @@ import {
   ClinicalTrialsGovService,
   SearchSet,
   ServiceConfiguration,
-} from "clinical-trial-matching-service";
+} from "@EssexManagement/clinical-trial-matching-service";
 import { Bundle, CodeableConcept, Coding } from "fhir/r4";
 import {
   rxnormSnomedMapping,

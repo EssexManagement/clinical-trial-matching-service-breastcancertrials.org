@@ -1,4 +1,4 @@
-import { ResearchStudy } from 'clinical-trial-matching-service';
+import { ResearchStudy } from '@EssexManagement/clinical-trial-matching-service';
 import { CodeableConcept } from 'fhir/r4';
 import { TrialResponse } from './breastcancertrials';
 

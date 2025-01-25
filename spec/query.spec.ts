@@ -1,4 +1,4 @@
-import { ClinicalTrialsGovService, ClinicalTrialMatcher } from "clinical-trial-matching-service";
+import { ClinicalTrialsGovService, ClinicalTrialMatcher } from "@EssexManagement/clinical-trial-matching-service";
 import { APIError, createClinicalTrialLookup, performCodeMapping, sendQuery } from "../src/query";
 import nock from "nock";
 import { Bundle, BundleEntry, CodeableConcept } from "fhir/r4";
