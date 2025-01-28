@@ -18,3 +18,7 @@
 # System Files
 .DS_Store
 Thumbs.db
+
+# Production files
+iisnode/
+web.config
