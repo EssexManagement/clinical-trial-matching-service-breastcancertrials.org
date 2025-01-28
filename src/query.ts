@@ -8,7 +8,7 @@ import {
   SearchSet,
   ServiceConfiguration,
 } from "@EssexManagement/clinical-trial-matching-service";
-import { Bundle, CodeableConcept, Coding } from "fhir/r4";
+import { Bundle, CodeableConcept, Coding, ResearchStudy } from "fhir/r4";
 import {
   rxnormSnomedMapping,
   stageSnomedMapping,
@@ -55,9 +55,9 @@ export function createClinicalTrialLookup(
     patientBundle = performCodeMapping(patientBundle);
     // For now, the full patient bundle is the query
     const result = await sendQuery(endpoint, JSON.stringify(patientBundle, null, 2));
-    const studies = result.map(convertToResearchStudy);
+    let studies: ResearchStudy[] = result.map(convertToResearchStudy);
     if (backupService) {
-      await backupService.updateResearchStudies(studies);
+      studies = await backupService.updateResearchStudies(studies);
     }
     const ss = new SearchSet();
     for (const study of studies) {
@@ -194,6 +194,11 @@ export function sendQuery(
             try {
               const json = JSON.parse(responseBody) as unknown;
               if (Array.isArray(json)) {
+                console.log(
+                  "Matched trials:",
+                  JSON.stringify(json.map((trial) => trial.trialId)),
+                  JSON.stringify(json[0])
+                );
                 // Assume it's correct
                 resolve(json as TrialResponse[]);
               } else {
