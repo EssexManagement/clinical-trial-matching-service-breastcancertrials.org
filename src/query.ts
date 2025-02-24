@@ -5,8 +5,11 @@
 
 import {
   ClinicalTrialsGovService,
+  DevCacheClient,
+  DevCacheClientAbs,
   SearchSet,
   ServiceConfiguration,
+  devCacheClientConstructor
 } from "@EssexManagement/clinical-trial-matching-service";
 import { Bundle, CodeableConcept, Coding, ResearchStudy } from "fhir/r4";
 import {
@@ -53,8 +56,17 @@ export function createClinicalTrialLookup(
     patientBundle: Bundle
   ): Promise<SearchSet> {
     patientBundle = performCodeMapping(patientBundle);
+    const devCacheClient = await devCacheClientConstructor();
+    await devCacheClient.connect();
     // For now, the full patient bundle is the query
-    const result = await sendQuery(endpoint, JSON.stringify(patientBundle, null, 2));
+    let result: TrialResponse[];
+    try {
+      result = await sendQuery(endpoint, JSON.stringify(patientBundle, null, 2), devCacheClient);
+    } catch (error) {
+      throw error;
+    } finally {
+      await devCacheClient.quit();
+    }
     let studies: ResearchStudy[] = result.map(convertToResearchStudy);
     if (backupService) {
       studies = await backupService.updateResearchStudies(studies);
@@ -166,76 +178,96 @@ function mapCoding(coding: CodeableConcept | undefined, resourceType: string) {
   }
 }
 
-export function sendQuery(
+export async function sendQuery(
   endpoint: string,
-  query: string
+  query: string,
+  devCacheClient: DevCacheClientAbs
 ): Promise<TrialResponse[]> {
-  return new Promise((resolve, reject) => {
-    const body = Buffer.from(query, "utf8");
-    console.log("Running raw query");
-    console.log(query);
+  const body = Buffer.from(query, "utf8");
+  console.log("Running raw query");
+  console.log(query);
 
-    const request = https.request(
-      endpoint,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/fhir+json",
+  if (devCacheClient instanceof DevCacheClient) {
+    function makeKey(query: string): string {
+      const queryBundle: Bundle = JSON.parse(query);
+      const serializedComponents = [];
+      for (const entry of queryBundle.entry) {
+        if (entry.resource?.resourceType === 'Patient') continue;
+        if (entry.resource?.resourceType === 'Parameters') {
+          serializedComponents.push(JSON.stringify(entry.resource.parameter));
+          continue;
+        }
+        if (isCoding(entry.resource)) {
+          serializedComponents.push(JSON.stringify(entry.resource.code));
+          continue;
+        }
+      }
+      return endpoint + serializedComponents.join('');
+    }
+    const key = makeKey(query);
+    const cached = await devCacheClient.get(key);
+    if (cached) {
+      return cached as TrialResponse[]; 
+    }
+    const res = await httpRequest();
+    await devCacheClient.set(key, res);
+    return res;
+  }
+
+  function httpRequest(): Promise<TrialResponse[]> {
+    return new Promise((resolve, reject) => {
+      const request = https.request(
+        endpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/fhir+json"
+          }
         },
-      },
-      (result) => {
-        let responseBody = "";
-        result.on("data", (chunk) => {
-          responseBody += chunk;
-        });
-        result.on("end", () => {
-          console.log("Complete");
-          if (result.statusCode === 200) {
-            try {
-              const json = JSON.parse(responseBody) as unknown;
-              if (Array.isArray(json)) {
-                console.log(
-                  "Matched trials:",
-                  JSON.stringify(json.map((trial) => trial.trialId)),
-                  JSON.stringify(json[0]),
-                  JSON.stringify(json.at(-1))
-                );
-                // Assume it's correct
-                resolve(json as TrialResponse[]);
-              } else {
-                reject(
-                  new APIError(
-                    "Unexpected JSON result from server",
-                    result,
-                    responseBody
-                  )
-                );
+        (result) => {
+          let responseBody = "";
+          result.on("data", (chunk) => {
+            responseBody += chunk;
+          });
+          result.on("end", () => {
+            console.log("Complete");
+            if (result.statusCode === 200) {
+              try {
+                const json = JSON.parse(responseBody) as unknown;
+                if (Array.isArray(json)) {
+                  console.log(
+                    "Matched trials:",
+                    JSON.stringify(json.map((trial) => trial.trialId)),
+                    JSON.stringify(json[0]),
+                    JSON.stringify(json.at(-1))
+                  );
+                  // Assume it's correct
+                  resolve(json as TrialResponse[]);
+                } else {
+                  reject(new APIError("Unexpected JSON result from server", result, responseBody));
+                }
+              } catch (ex) {
+                reject(new APIError("Unexpected exception parsing server response", result, responseBody));
               }
-            } catch (ex) {
+            } else {
               reject(
-                new APIError(
-                  "Unexpected exception parsing server response",
-                  result,
-                  responseBody
-                )
+                new APIError(`Server returned ${result.statusCode} ${result.statusMessage}`, result, responseBody)
               );
             }
-          } else {
-            reject(
-              new APIError(
-                `Server returned ${result.statusCode} ${result.statusMessage}`,
-                result,
-                responseBody
-              )
-            );
-          }
-        });
-      }
-    );
+          });
+        }
+      );
 
-    request.on("error", (error) => reject(error));
+      request.on("error", (error) => reject(error));
 
-    request.write(body);
-    request.end();
-  });
+      request.write(body);
+      request.end();
+    });
+  }
+
+  return httpRequest();
+}
+
+function isCoding(resource: any): resource is Coding {
+  return resource && resource.code !== undefined;
 }
