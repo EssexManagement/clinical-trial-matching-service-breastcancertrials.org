@@ -1,4 +1,4 @@
-import { ClinicalTrialsGovService, ClinicalTrialMatcher } from "@EssexManagement/clinical-trial-matching-service";
+import { ClinicalTrialsGovService, ClinicalTrialMatcher, DevCacheNoopClient } from "@EssexManagement/clinical-trial-matching-service";
 import { APIError, createClinicalTrialLookup, performCodeMapping, sendQuery } from "../src/query";
 import nock from "nock";
 import { Bundle, BundleEntry, CodeableConcept } from "fhir/r4";
@@ -246,7 +246,7 @@ describe(".sendQuery", () => {
   it("sets the content-type header", () => {
     interceptor.matchHeader("Content-type", "application/fhir+json").reply(200, []);
     return expectAsync(
-      sendQuery(endpoint, "ignored").then(() => {
+      sendQuery(endpoint, "ignored", new DevCacheNoopClient()).then(() => {
         expect(scope.isDone()).toBeTrue();
       })
     ).toBeResolved();
@@ -256,7 +256,7 @@ describe(".sendQuery", () => {
     const exampleTrial = createExampleTrialResponse();
     interceptor.reply(200, [exampleTrial]);
     return expectAsync(
-      sendQuery(endpoint, "ignored").then((result) => {
+      sendQuery(endpoint, "ignored", new DevCacheNoopClient()).then((result) => {
         expect(result).toEqual([exampleTrial]);
       })
     ).toBeResolved();
@@ -264,21 +264,21 @@ describe(".sendQuery", () => {
 
   it("rejects the Promise if the response isn't JSON", () => {
     interceptor.reply(200, "Not JSON");
-    return expectAsync(sendQuery(endpoint, "ignored")).toBeRejectedWithError(APIError);
+    return expectAsync(sendQuery(endpoint, "ignored", new DevCacheNoopClient())).toBeRejectedWithError(APIError);
   });
 
   it("rejects the Promise if the response isn't the expected JSON", () => {
     interceptor.reply(200, "null");
-    return expectAsync(sendQuery(endpoint, "ignored")).toBeRejectedWithError(APIError);
+    return expectAsync(sendQuery(endpoint, "ignored", new DevCacheNoopClient())).toBeRejectedWithError(APIError);
   });
 
   it("rejects the Promise if server returns an error response", () => {
     interceptor.reply(500, "This is an error.");
-    return expectAsync(sendQuery(endpoint, "ignored")).toBeRejectedWithError(APIError);
+    return expectAsync(sendQuery(endpoint, "ignored", new DevCacheNoopClient())).toBeRejectedWithError(APIError);
   });
 
   it("rejects the Promise if the connection fails", () => {
     interceptor.replyWithError("Oops");
-    return expectAsync(sendQuery(endpoint, "ignored")).toBeRejectedWithError("Oops");
+    return expectAsync(sendQuery(endpoint, "ignored", new DevCacheNoopClient())).toBeRejectedWithError("Oops");
   });
 });

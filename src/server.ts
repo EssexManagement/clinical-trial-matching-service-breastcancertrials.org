@@ -4,6 +4,7 @@ import { createClinicalTrialLookup } from "./query";
 import ClinicalTrialMatchingService, {
   configFromEnv,
   ClinicalTrialsGovService,
+  devCacheActive
 } from "@EssexManagement/clinical-trial-matching-service";
 import { importRxnormSnomedMapping, importStageSnomedMapping, importStageAjccMapping, importLoincBiomarkerMapping, importSnomedHl7Mapping } from "./breastcancertrials";
 import * as dotenv from "dotenv-flow";
@@ -36,7 +37,7 @@ export class BreastCancerTrialsService extends ClinicalTrialMatchingService {
   }
 }
 
-export default function start(): Promise<ClinicalTrialMatchingService> {
+export default async function start(): Promise<ClinicalTrialMatchingService> {
   // Use dotenv-flow to load local configuration from .env files
   dotenv.config({
     // The environment variable to use to set the environment
@@ -44,6 +45,9 @@ export default function start(): Promise<ClinicalTrialMatchingService> {
     // The default environment to use if none is set
     default_node_env: "development",
   });
+  if (await devCacheActive()) {
+    console.log("Dev cache is up and running.");
+  }
   const ctgovCacheFile = process.env['CTGOV_CACHE_FILE'];
   if (!ctgovCacheFile) {
     throw new Error('Missing configuration for CTGOV_CACHE_FILE, required for the backup service');
