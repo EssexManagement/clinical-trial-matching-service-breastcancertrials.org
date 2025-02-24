@@ -62,8 +62,6 @@ export function createClinicalTrialLookup(
     let result: TrialResponse[];
     try {
       result = await sendQuery(endpoint, JSON.stringify(patientBundle, null, 2), devCacheClient);
-    } catch (error) {
-      throw error;
     } finally {
       await devCacheClient.quit();
     }
