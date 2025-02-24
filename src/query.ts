@@ -197,7 +197,8 @@ export function sendQuery(
                 console.log(
                   "Matched trials:",
                   JSON.stringify(json.map((trial) => trial.trialId)),
-                  JSON.stringify(json[0])
+                  JSON.stringify(json[0]),
+                  JSON.stringify(json.at(-1))
                 );
                 // Assume it's correct
                 resolve(json as TrialResponse[]);
