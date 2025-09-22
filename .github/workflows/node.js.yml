@@ -28,4 +28,5 @@ jobs:
           echo "@EssexManagement:registry=https://npm.pkg.github.com" >> ~/.npmrc
       - run: npm ci
       - run: npm run-script coverage
+      - run: npm run-script lint
       # - uses: codecov/codecov-action@v1

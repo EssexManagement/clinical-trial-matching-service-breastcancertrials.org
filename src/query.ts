@@ -186,29 +186,29 @@ export async function sendQuery(
   console.log(query);
 
   if (devCacheClient instanceof DevCacheClient) {
-    function makeKey(query: string): string {
-      const queryBundle: Bundle = JSON.parse(query);
+    const makeKey = (query: string): string => {
+      const queryBundle = JSON.parse(query) as Bundle;
       const serializedComponents = [];
       for (const entry of queryBundle.entry) {
-        if (entry.resource?.resourceType === 'Patient') continue;
-        if (entry.resource?.resourceType === 'Parameters') {
+        if (entry.resource?.resourceType === "Patient") continue;
+        if (entry.resource?.resourceType === "Parameters") {
           serializedComponents.push(JSON.stringify(entry.resource.parameter));
           continue;
         }
-        if (isCoding(entry.resource)) {
-          serializedComponents.push(JSON.stringify(entry.resource.code));
+        if (isCoding(entry.resource as Coding)) {
+          serializedComponents.push(JSON.stringify((entry.resource as Coding).code));
           continue;
         }
       }
       return endpoint + serializedComponents.join('');
     }
     const key = makeKey(query);
-    const cached = await devCacheClient.get(key);
+    const cached = await devCacheClient.get<TrialResponse[]>(key);
     if (cached) {
-      return cached as TrialResponse[]; 
+      return cached; 
     }
     const res = await httpRequest();
-    await devCacheClient.set(key, res);
+    await devCacheClient.set<TrialResponse[]>(key, res);
     return res;
   }
 
@@ -231,7 +231,7 @@ export async function sendQuery(
             console.log("Complete");
             if (result.statusCode === 200) {
               try {
-                const json = JSON.parse(responseBody) as unknown;
+                const json = JSON.parse(responseBody) as TrialResponse[];
                 if (Array.isArray(json)) {
                   console.log(
                     "Matched trials:",
@@ -240,7 +240,7 @@ export async function sendQuery(
                     JSON.stringify(json.at(-1))
                   );
                   // Assume it's correct
-                  resolve(json as TrialResponse[]);
+                  resolve(json);
                 } else {
                   reject(new APIError("Unexpected JSON result from server", result, responseBody));
                 }
@@ -266,6 +266,6 @@ export async function sendQuery(
   return httpRequest();
 }
 
-function isCoding(resource: any): resource is Coding {
+function isCoding(resource: Coding): resource is Coding {
   return resource && resource.code !== undefined;
 }
