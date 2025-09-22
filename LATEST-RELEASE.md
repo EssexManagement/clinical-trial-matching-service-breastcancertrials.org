@@ -1,12 +1,17 @@
-title:	v1.1.3
-tag:	v1.1.3
+title:	v1.1.4
+tag:	v1.1.4
 draft:	false
 prerelease:	false
 immutable:	false
 author:	crouchcd
-created:	2025-08-22T01:51:02Z
-published:	2025-08-22T18:58:13Z
-url:	https://github.com/EssexManagement/clinical-trial-matching-service-breastcancertrials.org/releases/tag/v1.1.3
+created:	2025-09-22T15:15:42Z
+published:	2025-09-22T15:25:21Z
+url:	https://github.com/EssexManagement/clinical-trial-matching-service-breastcancertrials.org/releases/tag/v1.1.4
 --
-- bump form-data to 4.0.4
-**Full Changelog**: https://github.com/EssexManagement/clinical-trial-matching-service-breastcancertrials.org/compare/v1.1.2...v1.1.3
+## What's Changed
+* update common service to v0.2.4 @crouchcd in https://github.com/EssexManagement/clinical-trial-matching-service-breastcancertrials.org/pull/13
+* update common service to v0.2.5 by @crouchcd in https://github.com/EssexManagement/clinical-trial-matching-service-breastcancertrials.org/pull/14
+* Chore/add lint to ci by @crouchcd in https://github.com/EssexManagement/clinical-trial-matching-service-breastcancertrials.org/pull/15
+
+
+**Full Changelog**: https://github.com/EssexManagement/clinical-trial-matching-service-breastcancertrials.org/compare/v1.1.3...v1.1.4
